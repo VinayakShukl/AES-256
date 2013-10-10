@@ -2,6 +2,7 @@ import java.io.*;
 
 public class AES {
 
+    private static String _mode;
     private static FileInputStream _keyFile;
     private static FileInputStream _inputFile;
 
@@ -18,15 +19,23 @@ public class AES {
 
     public static void readArgs(String[] args) {
 
-        if (args.length < 3) {
+        if (args.length < 3 ) {
             System.err.println("\tUsage: AES option keyFile inputFile");
             System.err.println("\t\toption     [e]ncryption or [d]ecryption");
             System.err.println("\t\tkeyFile    file containing 256 bit key (64 hex characters, one line)");
             System.err.println("\t\tinputFile  plain/cipher text (32 hex characters per line)\n");
             System.exit(1);
+        } else if(args[0].length() != 1){
+            System.err.println("\tUsage: AES option keyFile inputFile");
+            System.err.println("\t\toption     [e]ncryption or [d]ecryption");
+            System.exit(1);
+        } else if (args[0].charAt(0) != 'e' && args[0].charAt(0) != 'd') {
+            System.err.println("\tUsage: AES option keyFile inputFile");
+            System.err.println("\t\toption     [e]ncryption or [d]ecryption");
+            System.exit(1);
         }
 
-        String _mode = args[0];
+        _mode = args[0];
         try {
             _keyFile = new FileInputStream(args[1]);
             _inputFile = new FileInputStream(args[2]);
@@ -119,6 +128,12 @@ public class AES {
         printInputs("KEY", key, 8);
         printInputs("INPUT", input, 16);
         AES test = new AES(key);
-        test.encrypt(input);
+        if(_mode.charAt(0) == 'e')
+            test.encrypt(input);
+        else{
+            System.err.println("Decryption not supported yet.");
+            // TODO: test.decrypt(input);
+        }
+
     }
 }
