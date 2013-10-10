@@ -4,28 +4,6 @@ import java.util.Properties;
 
 public class utils {
 
-    /*
-        set default configurations in config.properties
-     */
-
-    public static boolean setConfig() {
-        Properties prop = new Properties();
-
-        try {
-            //set the properties value
-            prop.setProperty("KeySize", "256");
-            prop.setProperty("Rounds", "14");
-
-            //save properties to project root folder
-            prop.store(new FileOutputStream("config.properties"), null);
-            return true;
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
     public static byte[] hexToByte(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
