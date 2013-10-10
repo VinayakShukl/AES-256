@@ -81,6 +81,8 @@ public class AES {
                 this.state[j][i] = input[4 * i + j];
             }
         }
+        this.ByteSub(this.state);
+
         printState("INITIAL STATE", this.state);
         return input;
     }
@@ -146,10 +148,44 @@ public class AES {
         AES test = new AES(key);
         if (_mode.charAt(0) == 'e')
             test.encrypt(input);
+
         else {
             System.err.println("Decryption not supported yet.");
             // TODO: test.decrypt(input);
         }
 
     }
+
+
+
+
+    public byte[][] ByteSub(byte[][] b)         //The current state is received and the state after the operation is returned.
+    {
+        System.out.println("In ByteSub");
+        //String temp = String.format("0x%02X", b[0][0]);
+        //int x = Integer.decode(temp.substring(2,3));
+        //int y = Integer.parseInt(temp.substring(3), 16);
+        //System.out.println(y);
+        //System.out.println(x);
+        //System.out.println(temp.charAt(2));
+        //System.out.println(temp);
+        //int p = utils.SBox.sub(107);
+        //System.out.println(p);
+        System.out.println(b[0][0]);
+        byte temp;
+        for(int i=0;i<4;i++)
+        {
+            for(int j=0;j<4;j++)
+            {
+                b[j][i] = utils.SBox.sub(b[j][i]);
+            }
+        }
+        System.out.println(utils.SBox.sub(190));
+        printState("SBOX 1 STATE", this.state);
+
+
+
+         return b;
+    }
+
 }
