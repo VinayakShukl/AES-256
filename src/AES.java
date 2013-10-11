@@ -79,6 +79,7 @@ public class AES {
         printState("INITIAL STATE");
         this.SubByte();
         this.ShiftRows();
+        this.MixColumns();
         //this.InvSubBytes();
         return input;
     }
@@ -186,5 +187,24 @@ public class AES {
             }
         }
         printState("SBOX 1 STATE AFTER SHIFTROW()");
+    }
+
+
+    private void MixColumns(){
+
+        for(int j= 0; j<1; j++)
+        {               state[0][j]=(byte) 0xd4 ;
+            state[1][j] = (byte) 0xbf;
+            state[2][j] = (byte) 0x5d;
+            state[3][j] = (byte) 0x30;
+
+            printState("BLAH");
+            state[0][j] = (byte) (utils.gmul2(state[0][j]) ^ utils.gmul3(state[1][j]) ^ state[2][j] ^ state[3][j]);
+            //state[1][j] = ;
+            //state[2][j] = ;
+            //state[3][j] = ;
+            printState("STATE AFTER 1 MIXCOL");
+
+        }
     }
 }

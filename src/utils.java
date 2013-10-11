@@ -61,5 +61,84 @@ public class utils {
             b &= 0x000000ff;
             return INV_SBOX[b >> 4][b & 0x0f];
         }
+
+    }
+
+
+    public static byte gmul2 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 1;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }
+
+
+    public static byte gmul4 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 2;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }
+
+
+    public static byte gmul8 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 3;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }
+
+    public static byte gmul3 (byte a){
+
+        byte b = a;
+        a = gmul2(a);
+        b ^= a;
+        //System.out.println("MUL3 : " + b);
+        //System.out.print(String.format("0x%02X", b) + " ");
+        return b;
+    }
+
+    public static byte gmul11 (byte a){
+
+        byte b = a;
+        a <<= 3;
+        b = (byte) (a ^ gmul3(b));
+        return b;
+    }
+
+    public static byte gmul14 (byte a){
+
+        /*
+
+
+         mul14 = mul8(a) ^ mul4(a) ^ mul2
+
+         mul13 = mul8(a) ^ mul4(a) ^ a
+
+         mul9 =  mul8(a) ^ a
+
+         mul11 = mul8(a) ^ mul2(a) ^ a
+
+         mul8 = 3 times mul2;
+
+         mul4 = 2 times mul2;
+
+         */
+
     }
 }
