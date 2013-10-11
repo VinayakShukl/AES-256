@@ -78,7 +78,8 @@ public class AES {
         }
         printState("INITIAL STATE");
         this.SubByte();
-        this.InvSubBytes();
+        this.ShiftRows();
+        //this.InvSubBytes();
         return input;
     }
 
@@ -169,5 +170,21 @@ public class AES {
             }
         }
         printState("SBOX 1 STATE AFTER INVERSE");
+    }
+
+    private void ShiftRows(){
+        byte temp;
+        for(int i=0; i<4;i++){
+            for(int k =0; k<i; k++) {
+                temp = state[i][0];
+                for(int j =0; j<3 ; j++){
+
+                    state[i][j] = state[i][j+1];
+
+                }
+                state[i][3] = temp;
+            }
+        }
+        printState("SBOX 1 STATE AFTER SHIFTROW()");
     }
 }
