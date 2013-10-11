@@ -57,5 +57,9 @@ public class utils {
             b &= 0x000000ff;
             return SBOX_[b >> 4][b & 0x0f];
         }
+        public static byte invSub (int b) {
+            b &= 0x000000ff;
+            return INV_SBOX[b >> 4][b & 0x0f];
+        }
     }
 }

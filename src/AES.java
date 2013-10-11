@@ -77,7 +77,8 @@ public class AES {
             }
         }
         printState("INITIAL STATE");
-        this.byteSub();
+        this.SubByte();
+        this.InvSubBytes();
         return input;
     }
 
@@ -150,7 +151,7 @@ public class AES {
     }
 
 
-    public void byteSub()         //The current state is received and the state after the operation is returned.
+    private void SubByte()         //The current state is received and the state after the operation is returned.
     {
         byte temp;
         for (int i = 0; i < 4; i++) {
@@ -158,5 +159,15 @@ public class AES {
                 state[j][i] = utils.SBox.sub(state[j][i]);
         }
         printState("SBOX 1 STATE");
+    }
+
+
+    private void InvSubBytes(){
+        for(int i =0; i<4; i++){
+            for(int j =0; j< 4; j++){
+                state[j][i] = utils.SBox.invSub(state[j][i]);
+            }
+        }
+        printState("SBOX 1 STATE AFTER INVERSE");
     }
 }
