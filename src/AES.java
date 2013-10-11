@@ -6,15 +6,11 @@ public class AES {
     private static FileInputStream _keyFile;
     private static FileInputStream _inputFile;
 
-    /*
-        all sizes are in terms of 'bytes'
-     */
     private final int Nb = 4;
     private final int wordSize = 4;
     private int Nk;
     private int Nr;
-    private byte[][] eSchedule;
-    private byte[][] dschedule;
+    private byte[][] schedule;
     private byte[][] state;
     private byte[][] rcon;
     private static byte[] input;
@@ -69,8 +65,7 @@ public class AES {
         System.out.println("\nKEY LENGTH: " + Nk);
         System.out.println("ROUNDS    : " + Nr);
         this.key = key;
-        eSchedule = new byte[Nb*(Nr+1)][4];
-        dschedule = new byte[Nb*(Nr+1)][4];
+        schedule = new byte[Nb * (Nr + 1)][4];
         //TODO: keyExpansion(_mode);
     }
 
@@ -81,9 +76,8 @@ public class AES {
                 this.state[j][i] = input[4 * i + j];
             }
         }
-        this.ByteSub(this.state);
-
-        printState("INITIAL STATE", this.state);
+        printState("INITIAL STATE");
+        this.byteSub();
         return input;
     }
 
@@ -106,13 +100,12 @@ public class AES {
         input = utils.hexToByte(s2.toString());
     }
 
-    public void printState(String id, byte[][] b) {
+    public void printState(String id) {
         long streamPtr = 0;
         System.out.println("\n" + id + ": ");
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < Nb; j++) {
-                System.out.print(String.format("0x%02X", b[i][j]) + " ");
-                this.state[j][i] = input[4 * i + j];
+                System.out.print(String.format("0x%02X", state[i][j]) + " ");
             }
             System.out.printf("\n");
         }
@@ -157,35 +150,13 @@ public class AES {
     }
 
 
-
-
-    public byte[][] ByteSub(byte[][] b)         //The current state is received and the state after the operation is returned.
+    public void byteSub()         //The current state is received and the state after the operation is returned.
     {
-        System.out.println("In ByteSub");
-        //String temp = String.format("0x%02X", b[0][0]);
-        //int x = Integer.decode(temp.substring(2,3));
-        //int y = Integer.parseInt(temp.substring(3), 16);
-        //System.out.println(y);
-        //System.out.println(x);
-        //System.out.println(temp.charAt(2));
-        //System.out.println(temp);
-        //int p = utils.SBox.sub(107);
-        //System.out.println(p);
-        System.out.println(b[0][0]);
         byte temp;
-        for(int i=0;i<4;i++)
-        {
-            for(int j=0;j<4;j++)
-            {
-                b[j][i] = utils.SBox.sub(b[j][i]);
-            }
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++)
+                state[j][i] = utils.SBox.sub(state[j][i]);
         }
-        System.out.println(utils.SBox.sub(190));
-        printState("SBOX 1 STATE", this.state);
-
-
-
-         return b;
+        printState("SBOX 1 STATE");
     }
-
 }
