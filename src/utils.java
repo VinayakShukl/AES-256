@@ -57,5 +57,146 @@ public class utils {
             b &= 0x000000ff;
             return SBOX_[b >> 4][b & 0x0f];
         }
+        public static byte invSub (int b) {
+            b &= 0x000000ff;
+            return INV_SBOX[b >> 4][b & 0x0f];
+        }
+
     }
+
+
+    public static byte gmul2 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 1;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }
+
+
+    /*public static byte gmul4 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 2;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }
+
+
+    public static byte gmul8 ( byte a){
+        byte hi;
+        hi = (byte)(a & 0x80);
+        //System.out.print(String.format("0x%02X", hi) + " ");
+        a <<= 3;
+        if((hi == (byte)0x80)){
+            //System.out.print(String.format("0x%02X", hi) + " ");
+            a^=0x1b;
+        }
+        return a;
+    }*/
+
+    public static byte gmul3 (byte a){
+
+        byte b = a;
+        a = gmul2(a);
+        b ^= a;
+        //System.out.println("MUL3 : " + b);
+        //System.out.print(String.format("0x%02X", b) + " ");
+        return b;
+    }
+    /*
+    public static byte gmul11 (byte a){
+
+        byte b = a;
+        a <<= 3;
+        b = (byte) (a ^ gmul3(b));
+        return b;
+    }
+     */
+
+    public static byte gmul4 (byte a)
+    {
+        System.out.println("GMUL 4");
+        byte b = a;
+        b = gmul2(a);
+        byte c  = gmul2(b);
+        b = (byte) (a ^ b);
+        return c;
+
+    }
+
+    public static byte gmul8 (byte a)
+    {
+        System.out.println("GMUL 8");
+        byte b = gmul2(a);
+        byte c = gmul2(b);
+        byte d = gmul2(c);
+        //byte result = (byte) (b ^ c ^ d);
+        //b = (byte) (gmul2(a) ^ gmul2(a) ^ gmul2(a));
+        return d;
+    }
+
+    public static byte gmul11 (byte a){
+        //Works and checked
+        byte b = a;
+        b = (byte) (gmul8(a) ^ gmul2(a) ^ a);
+        return b;
+    }
+
+    public static byte gmul13 (byte a) {
+        //Works and checked
+        byte b = a;
+        b = (byte) (gmul8(a) ^ gmul4(a) ^ a);
+        return b;
+    }
+
+    public static byte gmul9 (byte a){
+        //Works and checked
+        byte b = a;
+        b = (byte) (gmul8(a) ^ a);
+        return b;
+    }
+
+
+    public static byte gmul14 (byte a){
+        //Works and checked
+
+        byte b = a;
+
+
+        System.out.println(" IN GMUL 14");
+        b = (byte) (gmul8(a) ^ gmul4(a) ^ gmul2(a));
+
+        return b;
+
+        /*
+
+
+         mul14 = mul8(a) ^ mul4(a) ^ mul2
+
+         mul13 = mul8(a) ^ mul4(a) ^ a
+
+         mul9 =  mul8(a) ^ a
+
+         mul11 = mul8(a) ^ mul2(a) ^ a
+
+         mul8 = 3 times mul2;
+
+         mul4 = 2 times mul2;
+
+         */
+
+    }
+
+
+
+
 }

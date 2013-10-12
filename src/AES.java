@@ -95,7 +95,10 @@ public class AES {
             }
         }
         printState("INITIAL STATE");
-        this.byteSub();
+        this.SubByte();
+        this.ShiftRows();
+        this.MixColumns();
+        //this.InvSubBytes();
         return input;
     }
 
@@ -168,7 +171,7 @@ public class AES {
     }
 
 
-    public void byteSub()         //The current state is received and the state after the operation is returned.
+    private void SubByte()         //The current state is received and the state after the operation is returned.
     {
         byte temp;
         for (int i = 0; i < 4; i++) {
@@ -176,5 +179,76 @@ public class AES {
                 state[j][i] = utils.SBox.sub(state[j][i]);
         }
         printState("SBOX 1 STATE");
+    }
+
+
+    private void InvSubBytes(){
+        for(int i =0; i<4; i++){
+            for(int j =0; j< 4; j++){
+                state[j][i] = utils.SBox.invSub(state[j][i]);
+            }
+        }
+        printState("SBOX 1 STATE AFTER INVERSE");
+    }
+
+    private void ShiftRows(){
+        byte temp;
+        for(int i=0; i<4;i++){
+            for(int k =0; k<i; k++) {
+                temp = state[i][0];
+                for(int j =0; j<3 ; j++){
+
+                    state[i][j] = state[i][j+1];
+
+                }
+                state[i][3] = temp;
+            }
+        }
+        printState("SBOX 1 STATE AFTER SHIFTROW()");
+    }
+
+
+    private void MixColumns(){
+
+        state[0][0] = (byte) 0xd4;
+        state[1][0] = (byte) 0xbf;
+        state[2][0] = (byte) 0x5d;
+        state[3][0] = (byte) 0x30;
+
+        state[0][1] = (byte) 0xe0;
+        state[1][1] = (byte) 0xb4;
+        state[2][1] = (byte) 0x52;
+        state[3][1] = (byte) 0xae;
+
+        state[0][2] = (byte) 0xb8;
+        state[1][2] = (byte) 0x41;
+        state[2][2] = (byte) 0x11;
+        state[3][2] = (byte) 0xf1;
+
+        state[0][3] = (byte) 0x1e;
+        state[1][3] = (byte) 0x27;
+        state[2][3] = (byte) 0x98;
+        state[3][3] = (byte) 0xe5;
+
+        printState("INPUT TO MIXCOL");
+        for(int j= 0; j<1; j++)
+        {
+            System.out.print(String.format("0x%02X", state[0][j]) + " \n");
+            System.out.print(String.format("0x%02X", utils.gmul2(state[1][j])) + " \n");
+            System.out.print(String.format("0x%02X", utils.gmul3(state[2][j])) + " \n");
+            System.out.print(String.format("0x%02X", state[3][j]) + " \n");
+            System.out.println(utils.gmul2(state[1][j]));
+            System.out.println(utils.gmul3(state[2][j]));
+            System.out.println(state[0][j]);
+            System.out.println(state[3][j]);
+            //printState("BLAH");
+            state[0][j] = (byte) (utils.gmul2(state[0][j]) ^ utils.gmul3(state[1][j]) ^ state[2][j] ^ state[3][j]);
+            state[1][j] = (byte) ((byte)state[0][j] ^ (byte)utils.gmul2(state[1][j]) ^ (byte)utils.gmul3(state[2][j]) ^ (byte)state[3][j]);
+            state[2][j] = (byte) (state[0][j] ^ state[1][j] ^ utils.gmul2(state[2][j]) ^ utils.gmul3(state[3][j]));
+            state[3][j] = (byte) (utils.gmul3(state[0][j]) ^ state[1][j] ^ state[2][j] ^ utils.gmul2(state[3][j]));
+            printState("STATE AFTER 1 MIXCOL");
+
+        }
+        printState("AFTER MIXCOLUMNS :");
     }
 }
