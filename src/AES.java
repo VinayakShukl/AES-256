@@ -95,8 +95,10 @@ public class AES {
             }
         }
         printState("INITIAL STATE");
-        this.SubByte();
-        this.ShiftRows();
+        //this.SubByte();
+        //this.ShiftRows();
+        //this.InvShiftRows();
+        this.InvMixColumns();
         this.MixColumns();
         //this.InvSubBytes();
         return input;
@@ -207,6 +209,23 @@ public class AES {
         printState("SBOX 1 STATE AFTER SHIFTROW()");
     }
 
+    private void InvShiftRows(){
+        byte temp;
+        for(int i=0; i<4; i++){
+            for(int k = 0; k<i; k++)
+            {
+                temp = state[i][3];
+                for(int j = 3; j>0; j--)
+                {
+                    state[i][j] = state[i][j-1];
+                }
+                state[i][0] = temp;
+            }
+        }
+        printState("STATE AFTER InvShiftRows");
+
+    }
+
 
     private void MixColumns(){
 
@@ -231,8 +250,8 @@ public class AES {
         state[3][3] = (byte) 0xe5;
 
         printState("INPUT TO MIXCOL");
-        for(int j= 0; j<1; j++)
-        {
+        for(int j= 0; j<4; j++)
+        {   /*
             System.out.print(String.format("0x%02X", state[0][j]) + " \n");
             System.out.print(String.format("0x%02X", utils.gmul2(state[1][j])) + " \n");
             System.out.print(String.format("0x%02X", utils.gmul3(state[2][j])) + " \n");
@@ -240,15 +259,63 @@ public class AES {
             System.out.println(utils.gmul2(state[1][j]));
             System.out.println(utils.gmul3(state[2][j]));
             System.out.println(state[0][j]);
-            System.out.println(state[3][j]);
+            System.out.println(state[3][j]);  */
             //printState("BLAH");
-            state[0][j] = (byte) (utils.gmul2(state[0][j]) ^ utils.gmul3(state[1][j]) ^ state[2][j] ^ state[3][j]);
-            state[1][j] = (byte) ((byte)state[0][j] ^ (byte)utils.gmul2(state[1][j]) ^ (byte)utils.gmul3(state[2][j]) ^ (byte)state[3][j]);
-            state[2][j] = (byte) (state[0][j] ^ state[1][j] ^ utils.gmul2(state[2][j]) ^ utils.gmul3(state[3][j]));
-            state[3][j] = (byte) (utils.gmul3(state[0][j]) ^ state[1][j] ^ state[2][j] ^ utils.gmul2(state[3][j]));
-            printState("STATE AFTER 1 MIXCOL");
+            // The variables p,q,r and s act as the buffer and store the values of each column
+            byte p = state[0][j];
+            byte q = state[1][j];
+            byte r = state[2][j];
+            byte s = state[3][j];
+
+
+            state[0][j] = (byte) (utils.gmul2(p) ^ utils.gmul3(q) ^ r ^ s);
+            state[1][j] = (byte) (p ^ (byte)utils.gmul2(q) ^ (byte)utils.gmul3(r) ^ s);
+            state[2][j] = (byte) (p ^ q ^ utils.gmul2(r) ^ utils.gmul3(s));
+            state[3][j] = (byte) (utils.gmul3(p) ^ q ^ r ^ utils.gmul2(s));
 
         }
         printState("AFTER MIXCOLUMNS :");
+    }
+
+    private void InvMixColumns(){
+
+        state[0][0] = (byte) 0x04;
+        state[1][0] = (byte) 0x66;
+        state[2][0] = (byte) 0x81;
+        state[3][0] = (byte) 0xe5;
+
+        state[0][1] = (byte) 0xe0;
+        state[1][1] = (byte) 0xcb;
+        state[2][1] = (byte) 0x19;
+        state[3][1] = (byte) 0x9a;
+
+        state[0][2] = (byte) 0x48;
+        state[1][2] = (byte) 0xf8;
+        state[2][2] = (byte) 0xd3;
+        state[3][2] = (byte) 0x7a;
+
+        state[0][3] = (byte) 0x28;
+        state[1][3] = (byte) 0x06;
+        state[2][3] = (byte) 0x26;
+        state[3][3] = (byte) 0x4c;
+
+        printState("Input to InvMixColumns");
+
+
+        for(int j = 0; j<4 ; j++)
+        {
+            byte p = state[0][j];
+            byte q = state[1][j];
+            byte r = state[2][j];
+            byte s = state[3][j];
+
+            state[0][j] = (byte) (utils.gmul14(p) ^ utils.gmul11(q) ^ utils.gmul3(r) ^ utils.gmul9(s));
+            state[1][j] = (byte) (utils.gmul9(p) ^  utils.gmul14(q) ^ utils.gmul11(r) ^ utils.gmul13(s));
+            state[0][j] = (byte) (utils.gmul13(p) ^ utils.gmul9(q) ^ utils.gmul14(r) ^ utils.gmul11(s));
+            state[0][j] = (byte) (utils.gmul11(p) ^ utils.gmul13(q) ^ utils.gmul9(r) ^ utils.gmul14(s));
+
+        }
+
+        printState("Output of InvMixColumns");
     }
 }
