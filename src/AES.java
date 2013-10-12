@@ -7,7 +7,7 @@ public class AES {
     private static FileInputStream _inputFile;
 
     private final int Nb = 4;
-    private final int wordSize = 4;
+    private final int wordSize = 4; /* 1 word := 8 bytes */
     private int Nk;
     private int Nr;
     private byte[][] schedule;
@@ -66,10 +66,28 @@ public class AES {
         System.out.println("ROUNDS    : " + Nr);
         this.key = key;
         schedule = new byte[Nb * (Nr + 1)][4];
-        //TODO: keyExpansion(_mode);
+        keyExpansion(_mode);
     }
 
-    public byte[] encrypt(byte[] input) {
+    private void keyExpansion(String _mode){
+        int i = 0, temp;
+        byte b;
+        while( i < Nk){
+            schedule[i][0] = key[4*i];
+            schedule[i][1] = key[4*i+1];
+            schedule[i][2] = key[4*i+2];
+            schedule[i][3] = key[4*i+3];
+            i++;
+        }
+
+        for(i=0; i<schedule.length; i++){
+            System.out.println();
+            for(int j=0; j<4; j++)
+                System.out.print(String.format("0x%02X", schedule[i][j]) + " ");
+        }
+    }
+
+    private byte[] encrypt(byte[] input) {
         this.state = new byte[4][Nb];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < Nb; j++) {
