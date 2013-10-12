@@ -124,7 +124,7 @@ public class utils {
 
     public static byte gmul4 (byte a)
     {
-        System.out.println("GMUL 4");
+        //System.out.println("GMUL 4");
         byte b = a;
         b = gmul2(a);
         byte c  = gmul2(b);
@@ -135,7 +135,7 @@ public class utils {
 
     public static byte gmul8 (byte a)
     {
-        System.out.println("GMUL 8");
+        //System.out.println("GMUL 8");
         byte b = gmul2(a);
         byte c = gmul2(b);
         byte d = gmul2(c);
@@ -172,7 +172,7 @@ public class utils {
         byte b = a;
 
 
-        System.out.println(" IN GMUL 14");
+        //System.out.println(" IN GMUL 14");
         b = (byte) (gmul8(a) ^ gmul4(a) ^ gmul2(a));
 
         return b;
