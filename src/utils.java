@@ -1,7 +1,3 @@
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
-
 public class utils {
 
     public static byte[] hexToByte(String s) {
@@ -64,136 +60,55 @@ public class utils {
 
     }
 
-
-    public static byte gmul2 ( byte a){
-        byte hi;
-        hi = (byte)(a & 0x80);
-        //System.out.print(String.format("0x%02X", hi) + " ");
+    public static byte gmul2(byte a) {
+        byte hi = (byte) (a & 0x80);
         a <<= 1;
-        if((hi == (byte)0x80)){
-            //System.out.print(String.format("0x%02X", hi) + " ");
-            a^=0x1b;
-        }
+        if ((hi == (byte) 0x80))
+            a ^= 0x1b;
         return a;
     }
 
-
-    /*public static byte gmul4 ( byte a){
-        byte hi;
-        hi = (byte)(a & 0x80);
-        //System.out.print(String.format("0x%02X", hi) + " ");
-        a <<= 2;
-        if((hi == (byte)0x80)){
-            //System.out.print(String.format("0x%02X", hi) + " ");
-            a^=0x1b;
-        }
-        return a;
-    }
-
-
-    public static byte gmul8 ( byte a){
-        byte hi;
-        hi = (byte)(a & 0x80);
-        //System.out.print(String.format("0x%02X", hi) + " ");
-        a <<= 3;
-        if((hi == (byte)0x80)){
-            //System.out.print(String.format("0x%02X", hi) + " ");
-            a^=0x1b;
-        }
-        return a;
-    }*/
-
-    public static byte gmul3 (byte a){
+    public static byte gmul3(byte a) {
 
         byte b = a;
         a = gmul2(a);
         b ^= a;
-        //System.out.println("MUL3 : " + b);
-        //System.out.print(String.format("0x%02X", b) + " ");
         return b;
     }
-    /*
-    public static byte gmul11 (byte a){
 
-        byte b = a;
-        a <<= 3;
-        b = (byte) (a ^ gmul3(b));
-        return b;
-    }
-     */
-
-    public static byte gmul4 (byte a)
-    {
-        //System.out.println("GMUL 4");
-        byte b = a;
-        b = gmul2(a);
-        byte c  = gmul2(b);
-        b = (byte) (a ^ b);
-        return c;
-
+    public static byte gmul4(byte a) {
+        byte b = gmul2(a);
+        return gmul2(b);
     }
 
-    public static byte gmul8 (byte a)
-    {
-        //System.out.println("GMUL 8");
+    public static byte gmul8(byte a) {
         byte b = gmul2(a);
         byte c = gmul2(b);
-        byte d = gmul2(c);
-        //byte result = (byte) (b ^ c ^ d);
-        //b = (byte) (gmul2(a) ^ gmul2(a) ^ gmul2(a));
-        return d;
+        return gmul2(c);
     }
 
-    public static byte gmul11 (byte a){
-        //Works and checked
-        byte b = a;
-        b = (byte) (gmul8(a) ^ gmul2(a) ^ a);
-        return b;
-    }
-
-    public static byte gmul13 (byte a) {
-        //Works and checked
-        byte b = a;
-        b = (byte) (gmul8(a) ^ gmul4(a) ^ a);
-        return b;
-    }
-
-    public static byte gmul9 (byte a){
-        //Works and checked
-        byte b = a;
+    public static byte gmul9(byte a) {
+        byte b;
         b = (byte) (gmul8(a) ^ a);
         return b;
     }
 
-
-    public static byte gmul14 (byte a){
-        //Works and checked
-
-        byte b = a;
-
-
-        //System.out.println(" IN GMUL 14");
-        b = (byte) (gmul8(a) ^ gmul4(a) ^ gmul2(a));
-
+    public static byte gmul11(byte a) {
+        byte b;
+        b = (byte) (gmul8(a) ^ gmul2(a) ^ a);
         return b;
+    }
 
-        /*
+    public static byte gmul13(byte a) {
+        byte b;
+        b = (byte) (gmul8(a) ^ gmul4(a) ^ a);
+        return b;
+    }
 
-
-         mul14 = mul8(a) ^ mul4(a) ^ mul2
-
-         mul13 = mul8(a) ^ mul4(a) ^ a
-
-         mul9 =  mul8(a) ^ a
-
-         mul11 = mul8(a) ^ mul2(a) ^ a
-
-         mul8 = 3 times mul2;
-
-         mul4 = 2 times mul2;
-
-         */
-
+    public static byte gmul14(byte a) {
+        byte b;
+        b = (byte) (gmul8(a) ^ gmul4(a) ^ gmul2(a));
+        return b;
     }
 
      private static byte [] table2 =   {0x00,0x02,0x04,0x06,0x08,0x0a,0x0c,0x0e,0x10,0x12,0x14,0x16,0x18,0x1a,0x1c,0x1e,
@@ -217,8 +132,4 @@ public class utils {
     public static byte gmul2T(byte a){
         return table2[a];
     }
-
-
-
-
 }
