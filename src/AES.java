@@ -192,19 +192,39 @@ public class AES {
 
     private void MixColumns(){
 
-        for(int j= 0; j<1; j++)
-        {               state[0][j]=(byte) 0xd4 ;
-            state[1][j] = (byte) 0xbf;
-            state[2][j] = (byte) 0x5d;
-            state[3][j] = (byte) 0x30;
+        state[0][0] = (byte) 0xd4;
+        state[1][0] = (byte) 0xbf;
+        state[2][0] = (byte) 0x5d;
+        state[3][0] = (byte) 0x30;
 
-            printState("BLAH");
+        state[0][1] = (byte) 0xe0;
+        state[1][1] = (byte) 0xb4;
+        state[2][1] = (byte) 0x52;
+        state[3][1] = (byte) 0xae;
+
+        state[0][2] = (byte) 0xb8;
+        state[1][2] = (byte) 0x41;
+        state[2][2] = (byte) 0x11;
+        state[3][2] = (byte) 0xf1;
+
+        state[0][3] = (byte) 0x1e;
+        state[1][3] = (byte) 0x27;
+        state[2][3] = (byte) 0x98;
+        state[3][3] = (byte) 0xe5;
+
+        printState("INPUT TO MIXCOL");
+        for(int j= 0; j<4; j++)
+        {
+
+
+            //printState("BLAH");
             state[0][j] = (byte) (utils.gmul2(state[0][j]) ^ utils.gmul3(state[1][j]) ^ state[2][j] ^ state[3][j]);
-            //state[1][j] = ;
-            //state[2][j] = ;
-            //state[3][j] = ;
-            printState("STATE AFTER 1 MIXCOL");
+            state[1][j] = (byte) (state[0][j] ^ utils.gmul2(state[1][j]) ^ utils.gmul3(state[2][j]) ^ state[3][j]);
+            state[2][j] = (byte) (state[0][j] ^ state[1][j] ^ utils.gmul2(state[2][j]) ^ utils.gmul3(state[3][j]));
+            state[3][j] = (byte) (utils.gmul3(state[0][j]) ^ state[1][j] ^ state[2][j] ^ utils.gmul2(state[3][j]));
+            //printState("STATE AFTER 1 MIXCOL");
 
         }
+        printState("AFTER MIXCOLUMNS :");
     }
 }
