@@ -56,7 +56,7 @@ public class AES {
         out.println("ROUNDS    : " + Nr);
         AES.key = key;
         schedule = new int[Nb * (Nr + 1)];
-        keyExpansion(_mode);
+        keyExpansion();
     }
 
     private int RotWord(int i) {
@@ -70,7 +70,7 @@ public class AES {
                 ((utils.SBox.sub((i) & 0xff) & 0xff));
     }
 
-    private void keyExpansion(String _mode) {
+    private void keyExpansion() {
 
         int temp;
         int[] rcon = new int[11];
@@ -105,7 +105,7 @@ public class AES {
         }
     }
 
-    /*public void keySchedule(int round){
+    public void keySchedule(int round){
         out.println("\nKey Schedule for round " + round);
         for (int i = 0; i < 4; i++) {
             int w = schedule[4*round + i];
@@ -115,7 +115,7 @@ public class AES {
             System.out.print(String.format("%02X", (w     ) & 0xff) + " ");
         }
         out.println();
-    }*/
+    }
 
     private void AddRoundKey (int round) {
         for (int c = 0; c < Nb; c++) {
@@ -210,6 +210,31 @@ public class AES {
         AddRoundKey(Nr);
     }
 
+    private void decrypt(byte[] input) {
+        this.state = new byte[4][Nb];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < Nb; j++) {
+                this.state[j][i] = input[4 * i + j];
+            }
+        }
+        out.print("\nCiphertext: ");
+        for(int i=0; i<4; i++){
+            for(int j=0; j<4; j++){
+                out.print(String.format("%02x", state[j][i]));
+            }
+        }
+        AddRoundKey(Nr);
+        for (int round = 1; round < Nr; round++) {
+            InvShiftRows();
+            InvSubBytes();
+            AddRoundKey(Nr-round);
+            InvMixColumns();
+        }
+        InvShiftRows();
+        InvSubBytes();
+        AddRoundKey(0);
+    }
+
     public static void readInput() throws IOException {
         int k;
         StringBuilder s = new StringBuilder();
@@ -272,19 +297,27 @@ public class AES {
             out.print(String.format("%02x", key[i]));
         }
 
-        if (_mode.charAt(0) == 'e')
+        if (_mode.charAt(0) == 'e') {
             test.encrypt(input);
+            out.print("\nCiphertext: ");
+            for(int i=0; i<4; i++){
+                for(int j=0; j<4; j++){
+                    out.print(String.format("%02x", test.state[j][i]));
+                }
+            }
+            out.println();
+        }
         else {
-            err.println("Decryption not supported yet.");
-            // TODO: test.decrypt(input);
+            test.decrypt(input);
+            out.print("\nPlaintext : ");
+            for(int i=0; i<4; i++){
+                for(int j=0; j<4; j++){
+                    out.print(String.format("%02x", test.state[j][i]));
+                }
+            }
+            out.println();
         }
 
-        out.print("\nCiphertext: ");
-        for(int i=0; i<4; i++){
-            for(int j=0; j<4; j++){
-                out.print(String.format("%02x", test.state[j][i]));
-            }
-        }
-        out.println();
+
     }
 }
