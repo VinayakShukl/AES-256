@@ -1,4 +1,6 @@
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import static java.lang.System.*;
 
@@ -9,12 +11,10 @@ public class AES {
     private static FileInputStream _inputFile;
 
     private final int Nb = 4;
-    private final int wordSize = 4; /* 1 word := 8 bytes */
     private int Nk;
     private int Nr;
-    private byte[][] schedule;
+    private int[] schedule;
     private byte[][] state;
-    private byte[][] rcon;
     private static byte[] input;
     private static byte[] key;
 
@@ -46,63 +46,168 @@ public class AES {
     }
 
     public AES(byte[] key) {
-        //TODO: rcon();
-        switch (key.length) {
-            case 16:
-                Nk = 4;
-                Nr = 10;
-                break;
-            case 24:
-                Nk = 6;
-                Nr = 12;
-                break;
-            case 32:
-                Nk = 8;
-                Nr = 14;
-                break;
-            default:
-                out.println("Invalid Key Length");
-                break;
+        int keyBits = key.length * 8;
+        if (keyBits != 128 && keyBits != 192 && keyBits != 256) {
+            throw new RuntimeException("Invalid AES key size (" + keyBits + " bits)");
         }
+        Nk = keyBits >>> 5;
+        Nr = Nk + 6;
         out.println("\nKEY LENGTH: " + Nk);
         out.println("ROUNDS    : " + Nr);
         AES.key = key;
-        schedule = new byte[Nb * (Nr + 1)][4];
+        schedule = new int[Nb * (Nr + 1)];
         keyExpansion(_mode);
     }
 
-    private void keyExpansion(String _mode){
-        int i = 0;
-        while( i < Nk){
-            schedule[i][0] = key[4*i];
-            schedule[i][1] = key[4*i+1];
-            schedule[i][2] = key[4*i+2];
-            schedule[i][3] = key[4*i+3];
-            i++;
-        }
-
-       /* for(i=0; i<schedule.length; i++){
-            out.println();
-            for(int j=0; j<4; j++)
-                System.out.print(String.format("0x%02X", schedule[i][j]) + " ");
-        }*/
+    private int RotWord(int i) {
+        return Integer.rotateLeft(i, 8);
     }
 
-    private byte[] encrypt(byte[] input) {
+    private int SubWord(int i) {
+        return ((utils.SBox.sub((i >>> 24))) << 24) |
+                ((utils.SBox.sub((i >>> 16) & 0xff) & 0xff) << 16) |
+                ((utils.SBox.sub((i >>> 8) & 0xff) & 0xff) << 8) |
+                ((utils.SBox.sub((i) & 0xff) & 0xff));
+    }
+
+    private void keyExpansion(String _mode) {
+
+        int temp;
+        int[] rcon = new int[11];
+        for (int i = 0, k = 0; i < Nk; i++, k += 4) {
+            schedule[i] =
+                    ((key[k]) << 24) |
+                            ((key[k + 1] & 0xff) << 16) |
+                            ((key[k + 2] & 0xff) << 8) |
+                            ((key[k + 3] & 0xff));
+        }
+
+        rcon[1]  = (byte) 0x01 << 24;
+        rcon[2]  = (byte) 0x02 << 24;
+        rcon[3]  = (byte) 0x04 << 24;
+        rcon[4]  = (byte) 0x08 << 24;
+        rcon[5]  = (byte) 0x10 << 24;
+        rcon[6]  = (byte) 0x20 << 24;
+        rcon[7]  = (byte) 0x40 << 24;
+        rcon[8]  = (byte) 0x80 << 24;
+        rcon[9]  = (byte) 0x1b << 24;
+        rcon[10] = (byte) 0x36 << 24;
+
+        for (int i = Nk; i < Nb * (Nr + 1); i++) {
+            temp = schedule[i - 1];
+            if (i % Nk == 0) {
+                temp = SubWord(RotWord(temp));
+                temp ^= rcon[i / Nk];
+            } else if (Nk > 6 && i % Nk == 4) {
+                temp = SubWord(temp);
+            }
+            schedule[i] = schedule[i - Nk] ^ temp;
+        }
+    }
+
+    /*public void keySchedule(int round){
+        out.println("\nKey Schedule for round " + round);
+        for (int i = 0; i < 4; i++) {
+            int w = schedule[4*round + i];
+            System.out.print(String.format("%02X", (w>>>24) & 0xff) + " ");
+            System.out.print(String.format("%02X", (w>>>16) & 0xff) + " ");
+            System.out.print(String.format("%02X", (w>>> 8) & 0xff) + " ");
+            System.out.print(String.format("%02X", (w     ) & 0xff) + " ");
+        }
+        out.println();
+    }*/
+
+    private void AddRoundKey (int round) {
+        for (int c = 0; c < Nb; c++) {
+            int w = schedule[4*round + c];
+            state[0][c] ^= (w >>> 24)& 0xff;
+            state[1][c] ^= (w >>> 16)& 0xff;
+            state[2][c] ^= (w >>>  8)& 0xff;
+            state[3][c] ^= (w       )& 0xff;
+        }
+    }
+
+    private void SubBytes() {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++)
+                state[j][i] = utils.SBox.sub(state[j][i]);
+        }
+    }
+
+
+    private void InvSubBytes() {
+        for (int i = 0; i < 4; i++)
+            for (int j = 0; j < 4; j++)
+                state[j][i] = utils.SBox.invSub(state[j][i]);
+    }
+
+    private void ShiftRows() {
+        byte temp;
+        for (int i = 0; i < 4; i++)
+            for (int k = 0; k < i; k++) {
+                temp = state[i][0];
+                System.arraycopy(state[i], 1, state[i], 0, 3);
+                state[i][3] = temp;
+            }
+    }
+
+    private void InvShiftRows() {
+        byte temp;
+        for (int i = 0; i < 4; i++) {
+            for (int k = 0; k < i; k++) {
+                temp = state[i][3];
+                System.arraycopy(state[i], 0, state[i], 1, 3);
+                state[i][0] = temp;
+            }
+        }
+    }
+
+    private void MixColumns() {
+        byte[] tempCol;
+        for (int j = 0; j < 4; j++) {
+            tempCol = new byte[]{state[0][j], state[1][j], state[2][j], state[3][j]};
+            state[0][j] = (byte) (utils.gmul2(tempCol[0]) ^ utils.gmul3(tempCol[1]) ^ tempCol[2] ^ tempCol[3]);
+            state[1][j] = (byte) (tempCol[0] ^ utils.gmul2(tempCol[1]) ^ utils.gmul3(tempCol[2]) ^ tempCol[3]);
+            state[2][j] = (byte) (tempCol[0] ^ tempCol[1] ^ utils.gmul2(tempCol[2]) ^ utils.gmul3(tempCol[3]));
+            state[3][j] = (byte) (utils.gmul3(tempCol[0]) ^ tempCol[1] ^ tempCol[2] ^ utils.gmul2(tempCol[3]));
+        }
+    }
+
+    private void InvMixColumns() {
+        byte[] tempCol;
+        for (int j = 0; j < 4; j++) {
+            tempCol = new byte[]{state[0][j], state[1][j], state[2][j], state[3][j]};
+            state[0][j] = (byte) (utils.gmul14(tempCol[0]) ^ utils.gmul11(tempCol[1]) ^ utils.gmul13(tempCol[2]) ^ utils.gmul9(tempCol[3]));
+            state[1][j] = (byte) (utils.gmul9(tempCol[0]) ^ utils.gmul14(tempCol[1]) ^ utils.gmul11(tempCol[2]) ^ utils.gmul13(tempCol[3]));
+            state[2][j] = (byte) (utils.gmul13(tempCol[0]) ^ utils.gmul9(tempCol[1]) ^ utils.gmul14(tempCol[2]) ^ utils.gmul11(tempCol[3]));
+            state[3][j] = (byte) (utils.gmul11(tempCol[0]) ^ utils.gmul13(tempCol[1]) ^ utils.gmul9(tempCol[2]) ^ utils.gmul14(tempCol[3]));
+        }
+    }
+
+    private void encrypt(byte[] input) {
         this.state = new byte[4][Nb];
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < Nb; j++) {
                 this.state[j][i] = input[4 * i + j];
             }
         }
-        printState("Initial State");
-        this.SubBytes();
-        this.ShiftRows();
-        this.MixColumns();
-        //this.InvSubBytes();
-        //this.InvShiftRows();
-        this.InvMixColumns();
-        return input;
+        out.print("\nPlaintext : ");
+        for(int i=0; i<4; i++){
+            for(int j=0; j<4; j++){
+                out.print(String.format("%02x", state[j][i]));
+            }
+        }
+        //printState("Initial State");
+        AddRoundKey(0);
+        for (int round = 1; round < Nr; round++) {
+            SubBytes();
+            ShiftRows();
+            MixColumns();
+            AddRoundKey(round);
+        }
+        SubBytes();
+        ShiftRows();
+        AddRoundKey(Nr);
     }
 
     public static void readInput() throws IOException {
@@ -158,87 +263,28 @@ public class AES {
     public static void main(String[] args) throws IOException {
         readArgs(args);
         readInput();
-        printInputs("KEY", key, 8);
-        printInputs("INPUT", input, 16);
         AES test = new AES(key);
+
+        //printInputs("KEY", key, 8);
+        //printInputs("INPUT", input, 16);
+        out.print("\nKey       : ");
+        for(int i=0; i<test.Nk*4; i++){
+            out.print(String.format("%02x", key[i]));
+        }
+
         if (_mode.charAt(0) == 'e')
             test.encrypt(input);
-
         else {
             err.println("Decryption not supported yet.");
             // TODO: test.decrypt(input);
         }
 
-    }
-
-
-    private void SubBytes()
-    {
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++)
-                state[j][i] = utils.SBox.sub(state[j][i]);
-        }
-        printState("Output of SubBytes");
-    }
-
-
-    private void InvSubBytes(){
-        for(int i =0; i<4; i++)
-            for (int j = 0; j < 4; j++)
-                state[j][i] = utils.SBox.invSub(state[j][i]);
-        printState("Ouput of InvSubBytes");
-    }
-
-    private void ShiftRows(){
-        byte temp;
-        for(int i=0; i<4;i++)
-            for (int k = 0; k < i; k++) {
-                temp = state[i][0];
-                for (int j = 0; j < 3; j++)
-                    state[i][j] = state[i][j + 1];
-                state[i][3] = temp;
-            }
-        printState("Ouput of ShiftRow");
-    }
-
-    private void InvShiftRows(){
-        byte temp;
+        out.print("\nCiphertext: ");
         for(int i=0; i<4; i++){
-            for(int k = 0; k<i; k++)
-            {
-                temp = state[i][3];
-                System.arraycopy(state[i], 0, state[i], 1, 3);
-                state[i][0] = temp;
+            for(int j=0; j<4; j++){
+                out.print(String.format("%02x", test.state[j][i]));
             }
         }
-        printState("Output of InvShiftRows");
-    }
-
-    private void MixColumns(){
-
-        //printState("Input to MixCol");
-        byte[] tempCol;
-        for(int j=0; j<4; j++){
-            tempCol = new byte[]{state[0][j], state[1][j], state[2][j], state[3][j]};
-            state[0][j] = (byte) (utils.gmul2(tempCol[0]) ^ utils.gmul3(tempCol[1]) ^ tempCol[2] ^ tempCol[3]);
-            state[1][j] = (byte) (tempCol[0] ^ utils.gmul2(tempCol[1]) ^ utils.gmul3(tempCol[2]) ^ tempCol[3]);
-            state[2][j] = (byte) (tempCol[0] ^ tempCol[1] ^ utils.gmul2(tempCol[2]) ^ utils.gmul3(tempCol[3]));
-            state[3][j] = (byte) (utils.gmul3(tempCol[0]) ^ tempCol[1] ^ tempCol[2] ^ utils.gmul2(tempCol[3]));
-        }
-        printState("Ouput of MixCol");
-    }
-
-    private void InvMixColumns(){
-
-        //printState("Input to InvMixColumns");
-        byte[] tempCol;
-        for(int j=0; j<4; j++){
-            tempCol = new byte[]{state[0][j], state[1][j], state[2][j], state[3][j]};
-            state[0][j] = (byte) (utils.gmul14(tempCol[0]) ^ utils.gmul11(tempCol[1]) ^ utils.gmul13(tempCol[2]) ^ utils.gmul9(tempCol[3]));
-            state[1][j] = (byte) (utils.gmul9(tempCol[0]) ^ utils.gmul14(tempCol[1]) ^ utils.gmul11(tempCol[2]) ^ utils.gmul13(tempCol[3]));
-            state[2][j] = (byte) (utils.gmul13(tempCol[0]) ^ utils.gmul9(tempCol[1]) ^ utils.gmul14(tempCol[2]) ^ utils.gmul11(tempCol[3]));
-            state[3][j] = (byte) (utils.gmul11(tempCol[0]) ^ utils.gmul13(tempCol[1]) ^ utils.gmul9(tempCol[2]) ^ utils.gmul14(tempCol[3]));
-        }
-        printState("Output of InvMixColumns");
+        out.println();
     }
 }
