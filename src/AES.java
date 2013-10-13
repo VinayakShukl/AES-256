@@ -1,6 +1,4 @@
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 
 import static java.lang.System.*;
 
@@ -290,6 +288,9 @@ public class AES {
         readInput();
         AES test = new AES(key);
 
+
+        File old = new File(args[2]);       //Opening the input file
+
         //printInputs("KEY", key, 8);
         //printInputs("INPUT", input, 16);
         out.print("\nKey       : ");
@@ -298,24 +299,41 @@ public class AES {
         }
 
         if (_mode.charAt(0) == 'e') {
+
+            File newf = new File(args[2]+".enc");
+            old.renameTo(newf);
+            FileWriter fw = new FileWriter(newf);
+            BufferedWriter bw = new BufferedWriter(fw);
+
             test.encrypt(input);
             out.print("\nCiphertext: ");
             for(int i=0; i<4; i++){
                 for(int j=0; j<4; j++){
                     out.print(String.format("%02x", test.state[j][i]));
+                    fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
             out.println();
+            fw.close();
+
         }
         else {
+
+            File newf = new File(args[2]+".dec");
+            old.renameTo(newf);
+            FileWriter fw = new FileWriter(newf);
+            BufferedWriter bw = new BufferedWriter(fw);
+
             test.decrypt(input);
             out.print("\nPlaintext : ");
             for(int i=0; i<4; i++){
                 for(int j=0; j<4; j++){
                     out.print(String.format("%02x", test.state[j][i]));
+                    fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
             out.println();
+            fw.close();
         }
 
 
