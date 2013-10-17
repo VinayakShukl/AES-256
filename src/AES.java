@@ -39,7 +39,8 @@ public class AES {
             _keyFile = new FileInputStream(args[1]);
             _inputFile = new FileInputStream(args[2]);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            err.println("\tFile does not exist. Please check the extension.\n\t\t" + e.getMessage());
+            exit(1);
         }
     }
 
@@ -50,8 +51,9 @@ public class AES {
         }
         Nk = keyBits >>> 5;
         Nr = Nk + 6;
-        out.println("\nKEY LENGTH: " + Nk);
-        out.println("ROUNDS    : " + Nr);
+        out.println("\n\tNOTE: Keys of any length (128, 192, 256) are allowed! :D");
+        out.println("\nKey Length: " + Nk + " words");
+        out.println("Rounds    : " + Nr);
         AES.key = key;
         schedule = new int[Nb * (Nr + 1)];
         keyExpansion();
@@ -80,15 +82,15 @@ public class AES {
                             ((key[k + 3] & 0xff));
         }
 
-        rcon[1]  = (byte) 0x01 << 24;
-        rcon[2]  = (byte) 0x02 << 24;
-        rcon[3]  = (byte) 0x04 << 24;
-        rcon[4]  = (byte) 0x08 << 24;
-        rcon[5]  = (byte) 0x10 << 24;
-        rcon[6]  = (byte) 0x20 << 24;
-        rcon[7]  = (byte) 0x40 << 24;
-        rcon[8]  = (byte) 0x80 << 24;
-        rcon[9]  = (byte) 0x1b << 24;
+        rcon[1] = (byte) 0x01 << 24;
+        rcon[2] = (byte) 0x02 << 24;
+        rcon[3] = (byte) 0x04 << 24;
+        rcon[4] = (byte) 0x08 << 24;
+        rcon[5] = (byte) 0x10 << 24;
+        rcon[6] = (byte) 0x20 << 24;
+        rcon[7] = (byte) 0x40 << 24;
+        rcon[8] = (byte) 0x80 << 24;
+        rcon[9] = (byte) 0x1b << 24;
         rcon[10] = (byte) 0x36 << 24;
 
         for (int i = Nk; i < Nb * (Nr + 1); i++) {
@@ -103,25 +105,13 @@ public class AES {
         }
     }
 
-    public void keySchedule(int round){
-        out.println("\nKey Schedule for round " + round);
-        for (int i = 0; i < 4; i++) {
-            int w = schedule[4*round + i];
-            System.out.print(String.format("%02X", (w>>>24) & 0xff) + " ");
-            System.out.print(String.format("%02X", (w>>>16) & 0xff) + " ");
-            System.out.print(String.format("%02X", (w>>> 8) & 0xff) + " ");
-            System.out.print(String.format("%02X", (w     ) & 0xff) + " ");
-        }
-        out.println();
-    }
-
-    private void AddRoundKey (int round) {
+    private void AddRoundKey(int round) {
         for (int c = 0; c < Nb; c++) {
-            int w = schedule[4*round + c];
-            state[0][c] ^= (w >>> 24)& 0xff;
-            state[1][c] ^= (w >>> 16)& 0xff;
-            state[2][c] ^= (w >>>  8)& 0xff;
-            state[3][c] ^= (w       )& 0xff;
+            int w = schedule[4 * round + c];
+            state[0][c] ^= (w >>> 24) & 0xff;
+            state[1][c] ^= (w >>> 16) & 0xff;
+            state[2][c] ^= (w >>> 8) & 0xff;
+            state[3][c] ^= (w) & 0xff;
         }
     }
 
@@ -190,8 +180,8 @@ public class AES {
             }
         }
         out.print("\nPlaintext : ");
-        for(int i=0; i<4; i++){
-            for(int j=0; j<4; j++){
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
                 out.print(String.format("%02x", state[j][i]));
             }
         }
@@ -216,8 +206,8 @@ public class AES {
             }
         }
         out.print("\nCiphertext: ");
-        for(int i=0; i<4; i++){
-            for(int j=0; j<4; j++){
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
                 out.print(String.format("%02x", state[j][i]));
             }
         }
@@ -225,7 +215,7 @@ public class AES {
         for (int round = 1; round < Nr; round++) {
             InvShiftRows();
             InvSubBytes();
-            AddRoundKey(Nr-round);
+            AddRoundKey(Nr - round);
             InvMixColumns();
         }
         InvShiftRows();
@@ -252,37 +242,6 @@ public class AES {
         input = utils.hexToByte(s2.toString());
     }
 
-    public void printState(String id) {
-        out.println("\n" + id + ": ");
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < Nb; j++) {
-                out.print(String.format("0x%02X", state[i][j]) + " ");
-            }
-            out.printf("\n");
-        }
-    }
-
-    public static void printInputs(String id, byte[] b, final int numberOfColumns) {
-        long streamPtr = 0;
-        out.println("\n" + id + ": ");
-
-        if (id.equals("INPUT")) {
-            for (byte aB : b) {
-                final long col = streamPtr++ % numberOfColumns;
-                out.print(String.format("0x%02X", aB) + " ");
-                if (col == (numberOfColumns - 1)) {
-                    out.printf("\n");
-                }
-            }
-        } else if (id.equals("KEY")) {
-            for (int k = 0; k < 4; k++) {
-                for (int i = 0; i < b.length / 4; i++)
-                    out.print(String.format("0x%02x ", b[i * 4 + k]));
-                out.println();
-            }
-        }
-    }
-
     public static void main(String[] args) throws IOException {
         readArgs(args);
         readInput();
@@ -291,51 +250,45 @@ public class AES {
 
         File old = new File(args[2]);       //Opening the input file
 
-        //printInputs("KEY", key, 8);
-        //printInputs("INPUT", input, 16);
         out.print("\nKey       : ");
-        for(int i=0; i<test.Nk*4; i++){
+        for (int i = 0; i < test.Nk * 4; i++)
             out.print(String.format("%02x", key[i]));
-        }
 
         if (_mode.charAt(0) == 'e') {
 
-            File newf = new File(args[2]+".enc");
+            File newf = new File(args[2] + ".enc");
             old.renameTo(newf);
             FileWriter fw = new FileWriter(newf);
-            BufferedWriter bw = new BufferedWriter(fw);
 
             test.encrypt(input);
             out.print("\nCiphertext: ");
-            for(int i=0; i<4; i++){
-                for(int j=0; j<4; j++){
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
                     out.print(String.format("%02x", test.state[j][i]));
                     fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
             out.println();
+            out.println("\nCiphertext written to: " + newf);
             fw.close();
 
-        }
-        else {
+        } else {
 
-            File newf = new File(args[2]+".dec");
+            File newf = new File(args[2] + ".dec");
             old.renameTo(newf);
             FileWriter fw = new FileWriter(newf);
-            BufferedWriter bw = new BufferedWriter(fw);
 
             test.decrypt(input);
             out.print("\nPlaintext : ");
-            for(int i=0; i<4; i++){
-                for(int j=0; j<4; j++){
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
                     out.print(String.format("%02x", test.state[j][i]));
                     fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
             out.println();
+            out.println("\nPlaintext written to: " + newf);
             fw.close();
         }
-
-
     }
 }
