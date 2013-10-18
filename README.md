@@ -3,6 +3,10 @@ AES-256
 
 A java implementation of the AES cipher.
 
+AES.java contains all the main functions used for encryption. 
+
+utils.java has the supporting functions for SBOX tables and Galois Field multiplication
+
 The implementation works for 128, 192 and 256 bit keys without any modification to the code.
 
 The key schedule is stored in an int array
@@ -15,7 +19,3 @@ The multiplicaton by 3 is done by multiplying by 2 (using gmul2 explained earlie
 mixColumns only requires Galois field multiplication for 1,2 and 3 so with these we are able to perform mixColumns()
 
 For invMixColumns() we require Galois field multiplication for 9,11,13 and 14. These are also obtained in a similar way using the multiplication by 2 as the base. For example gmul9 is computed by using gmul8 and the original value.
-
-
-
-utils.java has the methods to read + write to files, multiply matrices
