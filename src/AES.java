@@ -243,6 +243,7 @@ public class AES {
     }
 
     public static void main(String[] args) throws IOException {
+        out.print("BEGIN");
         readArgs(args);
         readInput();
         AES test = new AES(key);
@@ -260,7 +261,10 @@ public class AES {
             old.renameTo(newf);
             FileWriter fw = new FileWriter(newf);
 
+            long startTime = System.nanoTime();
             test.encrypt(input);
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
             out.print("\nCiphertext: ");
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
@@ -268,6 +272,7 @@ public class AES {
                     fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
+            System.out.println("\nTime taken: " + duration + " nanoseconds");
             out.println();
             out.println("\nCiphertext written to: " + newf);
             fw.close();
@@ -277,8 +282,10 @@ public class AES {
             File newf = new File(args[2] + ".dec");
             old.renameTo(newf);
             FileWriter fw = new FileWriter(newf);
-
+            long startTime = System.nanoTime();
             test.decrypt(input);
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime;
             out.print("\nPlaintext : ");
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 4; j++) {
@@ -286,6 +293,7 @@ public class AES {
                     fw.write(String.format("%02x", test.state[j][i]));
                 }
             }
+            System.out.println("\nTime taken: " + duration + " nanoseconds");
             out.println();
             out.println("\nPlaintext written to: " + newf);
             fw.close();
